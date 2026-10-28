@@ -19,32 +19,53 @@ The journey from initial hardware assembly to a fully automated pipeline unfolde
 ### 1. Initial Assembly & Terminal Boot
 Getting the physical hardware staged, booted, and configured with the base system environment and system monitoring tools.
 
-![Early Server Setup](docs/screenshots/earlySetup.jpeg)
-*Initial hardware staging and server boot tests.*
+<p align="center">
+  <img src="docs/screenshots/earlySetup.jpeg" alt="Early Server Setup" width="450">
+  <br>
+  <em>Initial hardware staging and server boot tests.</em>
+</p>
 
-![Terminal Environment](docs/screenshots/terminal.png)
-*The active terminal environment tracking server metrics and system status.*
+<p align="center">
+  <img src="docs/screenshots/terminal.png" alt="Terminal Environment" width="450">
+  <br>
+  <em>The active terminal environment tracking server metrics and system status.</em>
+</p>
 
 ### 2. Core Service Deployment & Scraping Pipeline
 Writing the backend logic, deploying Docker Compose over Tailscale, and setting up the music scraping and library sync tools.
 
-![LemonChello Core](docs/screenshots/chello.png)
-*The backend application structuring ingestion pipelines and API routing.*
+<p align="center">
+  <img src="docs/screenshots/chello.png" alt="LemonChello Core" width="380">
+  <br>
+  <em>The backend application structuring ingestion pipelines and API routing.</em>
+</p>
 
-![Navidrome Integration](docs/screenshots/navi.jpg)
-*Indexing downloaded tracks and metadata automatically into the Navidrome media server.*
+<p align="center">
+  <img src="docs/screenshots/navi.jpg" alt="Navidrome Integration" width="450">
+  <br>
+  <em>Indexing downloaded tracks and metadata automatically into the Navidrome media server.</em>
+</p>
 
-![File Stash Management](docs/screenshots/stash.png)
-*Managing file structures and directories via Filestash.*
+<p align="center">
+  <img src="docs/screenshots/stash.png" alt="File Stash Management" width="450">
+  <br>
+  <em>Managing file structures and directories via Filestash.</em>
+</p>
 
 ### 3. Remote Access & Client Experience
 Integrating mobile web controls and documenting the final deployed environment.
 
-![Mobile Music GUI](docs/screenshots/IMG_3139.png)
-*The mobile-responsive web dashboard used to submit Spotify links directly to the server.*
+<p align="center">
+  <img src="docs/screenshots/IMG_3139.png" alt="Mobile Music GUI" width="280">
+  <br>
+  <em>The mobile-responsive web dashboard used to submit Spotify links directly to the server.</em>
+</p>
 
-![Personal Context](docs/screenshots/me.jpeg)
-*A look behind the scenes during the build process.*
+<p align="center">
+  <img src="docs/screenshots/me.jpeg" alt="Personal Context" width="380">
+  <br>
+  <em>A look behind the scenes during the build process.</em>
+</p>
 
 ---
 
