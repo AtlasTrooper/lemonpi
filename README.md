@@ -92,8 +92,8 @@ when setting up this server I wanted an intuitive way for me to move as many son
 browse them all with.  
 - **Navidrome** acts as the blazing-fast music server, serving high-bitrate MP3 libraries straight to any client.
 - **LemonChello** acts as the automated bridge: it takes Spotify playlist or track links, matches them cleanly against YouTube via `yt-dlp`, embeds high-resolution cover art, ID3 tags, and synchronized lyrics via Mutagen, and drops them right into the Navidrome library folders—automatically triggering an index scan when finished.
-
 As for the mobile side I've come to enjoy substreamer and Subsonify (IOS, adroid maybe?), both are great, though there are plenty of other options for basically any platform you choose.
+
 ---
 
 ## 🛠️ Deployment & Maintenance
