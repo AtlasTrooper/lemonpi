@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lemonChello 🍋 - Music Sync & Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        spotify: '#1DB954',
+                        spotifyDark: '#1aa34a',
+                        lemonBg: '#121214',
+                        lemonCard: '#1a1a1e',
+                        lemonBorder: '#27272a',
+                        lavender: '#a78bfa',
+                        peach: '#fb923c'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-lemonBg text-zinc-100 min-h-screen flex flex-col selection:bg-spotify selection:text-black">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-lemonBorder bg-lemonCard/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🍋</span>
+                <div>
+                    <h1 class="font-bold tracking-tight text-lg text-white flex items-center gap-2">
+                        lemonChello <span class="text-xs px-2 py-0.5 rounded-full bg-spotify/10 text-spotify border border-spotify/20">Active Server</span>
+                    </h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="server-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-2"></span> System Ready
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-6 py-10 flex-grow w-full space-y-8">
+
+        <!-- URL Input & Control Panel Card -->
+        <div class="bg-lemonCard border border-lemonBorder rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Sync Playlist to Navidrome</h2>
+                    <p class="text-sm text-zinc-400">Paste your Spotify playlist link below to pull tracks straight into your Pi storage.</p>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-zinc-400 bg-lemonBg px-3 py-1.5 rounded-lg border border-lemonBorder">
+                    <span>Target Folder:</span>
+                    <code class="text-lavender font-mono">/mnt/storage/music</code>
+                </div>
+            </div>
+
+            <!-- URL Bar Form -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+                        🔗
+                    </div>
+                    <input type="text" id="playlist-url" placeholder="https://open.spotify.com/playlist/..." 
+                        class="w-full pl-11 pr-4 py-3 bg-lemonBg border border-lemonBorder rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-spotify transition">
+                </div>
+                <button onclick="startDownload()" id="download-btn" class="bg-spotify hover:bg-spotifyDark text-black font-semibold px-6 py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-spotify/10">
+                    <span>Start Downloading</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Progress Tracker Card -->
+        <div id="progress-card" class="bg-lemonCard border border-lemonBorder rounded-2xl p-6 shadow-xl space-y-4">

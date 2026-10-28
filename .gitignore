@@ -1,0 +1,29 @@
+# Environment & Secrets
+.env
+*.env
+
+# SSL / TLS Certificates and Private Keys
+*.crt
+*.key
+*.pem
+*.pfx
+*.cer
+certs/
+private/
+ssl/
+
+# Docker volumes & local data caches
+/filestash/data/
+/lemonChello/.cache/
+/navidrome/data/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+
+# Local runtime data and proxy volumes
+/npm/
+/filestash-data/
+/navidrome-data/

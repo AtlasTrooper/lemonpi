@@ -1,0 +1,61 @@
+services:
+  # Nginx Rev Prox
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'      # Public HTTP Port
+      - '81:81'      # Admin Web UI
+      - '443:443'    # Public HTTPS Port
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+
+  # Navidrome Music Server
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    ports:
+      - '4533:4533'
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_SESSIONTIMEOUT: 24h
+      ND_BASEURL: "https://lemonpi.tail5dbd70.ts.net:4533"
+    volumes:
+      - ./navidrome/data:/data
+      - /mnt/storage/music:/music:ro
+
+  # Filestash File Manager
+  filestash:
+    image: machines/filestash:latest
+    container_name: filestash
+    restart: unless-stopped
+    ports:
+      - '8334:8334'
+    environment:
+      - APPLICATION_URL=lemonpi.tail5dbd70.ts.net:8443
+      - X_FORWARDED_PROTO=https
+      - PROXY=true
+    volumes:
+      - ./filestash/data:/app/data
+
+  # lemonChello Spotify Scraper
+  lemonchello:
+    image: lemonchello:latest
+    #build: ./lemonChello
+    container_name: lemonchello
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    volumes:
+      - /mnt/storage/music:/music
+      - ./lemonChello/.cache:/app/.cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MUSIC_DIR=/music
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=http://127.0.0.1:8888/callback
