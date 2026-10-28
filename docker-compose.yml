@@ -41,17 +41,17 @@ services:
       - PROXY=true
     volumes:
       - ./filestash/data:/app/data
-
+      - /mnt/storage:/mnt/storage
   # lemonChello Spotify Scraper
   lemonchello:
     image: lemonchello:latest
-    #build: ./lemonChello
     container_name: lemonchello
     restart: unless-stopped
     ports:
       - '5000:5000'
     volumes:
       - /mnt/storage/music:/music
+      - ./lemonChello:/app              # <-- This bind-mounts your local source folder directly into /app!
       - ./lemonChello/.cache:/app/.cache
     environment:
       - PYTHONUNBUFFERED=1
