@@ -11,13 +11,19 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Environment configuration with defaults matching your server setup
-BASE_OUTPUT_DIR = os.getenv('MUSIC_DIR', '/music')
+BASE_OUTPUT_DIR = os.getenv('MUSIC_DIR', '/mnt/storage/music')
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID', 'YOUR_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET', 'YOUR_CLIENT_SECRET')
 SPOTIFY_REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI', 'http://127.0.0.1:8888/callback')
 NAVIDROME_URL = os.getenv('NAVIDROME_URL', 'http://navidrome:4533')
 
-download_status = {"status": "Idle", "progress": 0, "current_track": ""}
+# Global state tracker for progress and live status checks
+download_status = {
+    "status": "Idle",
+    "progress": 0,
+    "current_track": "",
+    "error_details": None
+}
 
 class MyLogger:
     def debug(self, msg): pass
@@ -64,6 +70,20 @@ def apply_metadata(mp3_path, track_info, cover_path=None, lyrics=None):
     except Exception as e:
         print(f"[-] Error applying metadata: {e}")
 
+def update_master_playlist():
+    """Scans BASE_OUTPUT_DIR and regenerates All_Songs.m3u for Navidrome & Substreamer."""
+    try:
+        m3u_path = os.path.join(BASE_OUTPUT_DIR, "All_Songs.m3u")
+        with open(m3u_path, "w") as m3u_file:
+            for root, _, files in os.walk(BASE_OUTPUT_DIR):
+                for file in sorted(files):
+                    if file.endswith(('.mp3', '.flac', '.m4a')) and file != "All_Songs.m3u":
+                        rel_path = os.path.relpath(os.path.join(root, file), BASE_OUTPUT_DIR)
+                        m3u_file.write(f"./{rel_path}\n")
+        print("[+] Regenerated All_Songs.m3u master playlist.")
+    except Exception as e:
+        print(f"[-] Failed to update All_Songs.m3u playlist: {e}")
+
 def trigger_navidrome_scan():
     """Trigger an automated library scan in Navidrome."""
     try:
@@ -76,7 +96,12 @@ def trigger_navidrome_scan():
 def run_download_job(url):
     global download_status
     try:
-        download_status = {"status": "Authenticating & Fetching Metadata...", "progress": 5, "current_track": ""}
+        download_status = {
+            "status": "Authenticating & Fetching Metadata...",
+            "progress": 5,
+            "current_track": "Contacting Spotify API...",
+            "error_details": None
+        }
         
         auth_manager = SpotifyOAuth(
             client_id=SPOTIFY_CLIENT_ID,
@@ -88,7 +113,6 @@ def run_download_job(url):
         )
         sp = spotipy.Spotify(auth_manager=auth_manager)
         
-        # Handle individual track vs playlist
         tracks = []
         if 'track' in url:
             track_id = url.split('/')[-1].split('?')[0]
@@ -135,7 +159,8 @@ def run_download_job(url):
             download_status = {
                 "status": f"Downloading ({i}/{total_tracks})",
                 "progress": int((i / total_tracks) * 100),
-                "current_track": q_str
+                "current_track": q_str,
+                "error_details": None
             }
             
             safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_')).strip()
@@ -196,10 +221,27 @@ def run_download_job(url):
             except Exception as e:
                 print(f"Failed download {q_str}: {e}")
                 
-        download_status = {"status": "Complete", "progress": 100, "current_track": "All tracks downloaded successfully!"}
+        # 1. Update status
+        download_status = {
+            "status": "Complete", 
+            "progress": 100, 
+            "current_track": "All tracks downloaded successfully!",
+            "error_details": None
+        }
+        
+        # 2. Re-build the All_Songs.m3u master playlist automatically
+        update_master_playlist()
+        
+        # 3. Trigger Navidrome index scan
         trigger_navidrome_scan()
+
     except Exception as e:
-        download_status = {"status": f"Error: {str(e)}", "progress": 0, "current_track": ""}
+        download_status = {
+            "status": "Error", 
+            "progress": 0, 
+            "current_track": "",
+            "error_details": str(e)
+        }
 
 @app.route('/')
 def index():
@@ -207,20 +249,21 @@ def index():
 
 @app.route('/api/download', methods=['POST'])
 def start_download():
-    data = request.json
+    data = request.json or {}
     url = data.get('url')
     if not url:
-        return jsonify({"error": "No playlist URL provided"}), 400
+        return jsonify({"error": "No Spotify playlist or track URL provided"}), 400
         
     if download_status["status"].startswith("Downloading") or download_status["status"].startswith("Authenticating"):
-        return jsonify({"message": "Download already in progress!"}), 400
+        return jsonify({"message": "Download task is already running in background!", "status": download_status}), 400
         
     thread = threading.Thread(target=run_download_job, args=(url,))
     thread.start()
-    return jsonify({"message": "Download started in background!"})
+    return jsonify({"message": "Download task started!", "status": download_status})
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
+    """Live status endpoint queried by front-end status check button."""
     return jsonify(download_status)
 
 if __name__ == '__main__':
