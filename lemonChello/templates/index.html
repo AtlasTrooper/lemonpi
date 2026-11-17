@@ -1,223 +1,409 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-[#0d130e] text-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LemonChello 🍋 - Music Downloader</title>
+    <title>LemonPi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent: #1db954; /* Spotify Green */
-            --accent-hover: #1ed760;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --border-color: #333333;
+        body { font-family: 'Quicksand', sans-serif; }
+        h1, h2, h3, button, .font-heading { font-family: 'Fredoka', sans-serif; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #121a13; }
+        ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 20px; border: 2px solid #121a13; }
+        ::-webkit-scrollbar-thumb:hover { background: #16a34a; }
+        
+        /* Pixelated SVG rendering */
+        .pixelated {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        /* Cartoony Card Tokens */
+        .lemon-card {
+            background-color: #172219;
+            border: 3px solid #22c55e;
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        .lemon-card-sub {
+            background-color: #111a12;
+            border: 2px solid #28382b;
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        .lemon-input {
+            background-color: #0b110c;
+            border: 2px solid #28382b;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.6);
+        }
+        .lemon-input:focus {
+            border-color: #22c55e;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.6), 0 0 0 2px rgba(34, 197, 94, 0.25);
         }
 
-        .container {
-            background-color: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 500px;
-            box-sizing: border-box;
-            border: 1px solid var(--border-color);
+        /* Cartoon Action Buttons */
+        .lemon-btn-primary {
+            background-color: #22c55e;
+            color: #000000;
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px 0px #000000;
+            transition: all 0.15s ease-in-out;
+        }
+        .lemon-btn-primary:hover {
+            background-color: #4ade80;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        .lemon-btn-primary:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000000;
         }
 
-        h1 {
-            margin-top: 0;
-            font-size: 1.8rem;
-            text-align: center;
-            margin-bottom: 0.5rem;
+        .lemon-btn-accent {
+            background-color: #eab308;
+            color: #000000;
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px 0px #000000;
+            transition: all 0.15s ease-in-out;
+        }
+        .lemon-btn-accent:hover {
+            background-color: #facc15;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        .lemon-btn-accent:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000000;
         }
 
-        p.subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
+        .lemon-btn-secondary {
+            background-color: #1f2e22;
+            color: #22c55e;
+            border: 2px solid #22c55e;
+            box-shadow: 3px 3px 0px 0px #000000;
+            transition: all 0.15s ease-in-out;
+        }
+        .lemon-btn-secondary:hover {
+            background-color: #283c2c;
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        .lemon-btn-secondary:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px 0px #000000;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        @keyframes pixel-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
         }
-
-        input[type="text"] {
-            padding: 0.8rem 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: #2a2a2a;
-            color: var(--text-primary);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--accent);
-        }
-
-        button {
-            background-color: var(--accent);
-            color: #000;
-            font-weight: bold;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            color: #888;
-        }
-
-        .status-box {
-            margin-top: 2rem;
-            background-color: #252525;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .status-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .current-track {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            height: 8px;
-        }
-
-        .progress-bar {
-            width: 0%;
-            height: 100%;
-            background-color: var(--accent);
-            transition: width 0.3s ease;
+        .pixel-bounce {
+            animation: pixel-bounce 1.5s infinite ease-in-out;
         }
     </style>
 </head>
-<body>
-
-    <div class="container">
-        <h1>LemonChello 🍋</h1>
-        <p class="subtitle">Paste a Spotify Playlist or Track link below</p>
-
-        <div class="input-group">
-            <input type="text" id="urlInput" placeholder="https://open.spotify.com/playlist/... or track/...">
-            <button type="button" id="downloadBtn" onclick="startDownload()">Start Download</button>
-        </div>
-
-        <div class="status-box">
-            <div class="status-header">
+<body class="h-full flex flex-col antialiased bg-[#0d130e] text-gray-100">
+    
+    <!-- Top Navigation Bar -->
+    <header class="border-b-4 border-black bg-[#22c55e] text-black sticky top-0 z-50 py-2.5 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Pixel Art Lemon Character SVG -->
+                <div class="w-11 h-11 bg-[#facc15] border-3 border-black rounded-2xl flex items-center justify-center p-1 shadow-[3px_3px_0px_0px_#000000] pixel-bounce">
+                    <svg class="w-full h-full pixelated" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Leaf -->
+                        <rect x="9" y="1" width="3" height="2" fill="#15803d"/>
+                        <rect x="11" y="2" width="2" height="2" fill="#22c55e"/>
+                        <!-- Lemon Body -->
+                        <rect x="4" y="3" width="8" height="1" fill="#000000"/>
+                        <rect x="3" y="4" width="10" height="1" fill="#facc15"/>
+                        <rect x="2" y="5" width="12" height="7" fill="#facc15"/>
+                        <rect x="3" y="12" width="10" height="1" fill="#facc15"/>
+                        <rect x="4" y="13" width="8" height="1" fill="#000000"/>
+                        <!-- Outline sides -->
+                        <rect x="2" y="4" width="1" height="8" fill="#000000"/>
+                        <rect x="13" y="4" width="1" height="8" fill="#000000"/>
+                        <!-- Pixel Eyes -->
+                        <rect x="5" y="7" width="2" height="2" fill="#000000"/>
+                        <rect x="9" y="7" width="2" height="2" fill="#000000"/>
+                        <rect x="5" y="7" width="1" height="1" fill="#ffffff"/>
+                        <rect x="9" y="7" width="1" height="1" fill="#ffffff"/>
+                        <!-- Smile -->
+                        <rect x="7" y="10" width="2" height="1" fill="#000000"/>
+                        <!-- Cheeks -->
+                        <rect x="4" y="9" width="1" height="1" fill="#f97316"/>
+                        <rect x="11" y="9" width="1" height="1" fill="#f97316"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-wide uppercase leading-none text-black">LemonPi Server</h1>
+                    <p class="text-xs font-bold text-emerald-950 tracking-wider uppercase mt-0.5">Media & Music Hub</p>
+                </div>
+            </div>
+            
+            <div id="statusPill" class="flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-black text-[#22c55e] border-2 border-black">
+                <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></span>
                 <span id="statusText">Idle</span>
-                <span id="progressText">0%</span>
-            </div>
-            <div class="current-track" id="currentTrackText">Waiting for input...</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar"></div>
             </div>
         </div>
-    </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+        <!-- LemonChello Import & Search Panel -->
+        <section class="lemon-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-4">
+                    <!-- Larger Pixel Lemon Mascot Card Banner -->
+                    <div class="w-14 h-14 bg-[#facc15] border-3 border-black rounded-2xl flex-shrink-0 flex items-center justify-center p-1.5 shadow-[4px_4px_0px_0px_#000000]">
+                        <svg class="w-full h-full pixelated" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="9" y="1" width="3" height="2" fill="#15803d"/>
+                            <rect x="11" y="2" width="2" height="2" fill="#22c55e"/>
+                            <rect x="4" y="3" width="8" height="1" fill="#000000"/>
+                            <rect x="3" y="4" width="10" height="1" fill="#facc15"/>
+                            <rect x="2" y="5" width="12" height="7" fill="#facc15"/>
+                            <rect x="3" y="12" width="10" height="1" fill="#facc15"/>
+                            <rect x="4" y="13" width="8" height="1" fill="#000000"/>
+                            <rect x="2" y="4" width="1" height="8" fill="#000000"/>
+                            <rect x="13" y="4" width="1" height="8" fill="#000000"/>
+                            <rect x="5" y="7" width="2" height="2" fill="#000000"/>
+                            <rect x="9" y="7" width="2" height="2" fill="#000000"/>
+                            <rect x="5" y="7" width="1" height="1" fill="#ffffff"/>
+                            <rect x="9" y="7" width="1" height="1" fill="#ffffff"/>
+                            <rect x="7" y="10" width="2" height="1" fill="#000000"/>
+                            <rect x="4" y="9" width="1" height="1" fill="#f97316"/>
+                            <rect x="11" y="9" width="1" height="1" fill="#f97316"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-[#22c55e] tracking-wide">
+                            LemonChello Music Importer
+                        </h2>
+                        <p class="text-sm font-medium text-emerald-200/80 mt-1">Search tracks or paste links to tag, grab lyrics, and update Navidrome automatically.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar Section -->
+            <div class="space-y-3 mb-8">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#22c55e]">Track Search Catalog</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="songSearchInput" 
+                           placeholder="Type track title, artist name, or album..." 
+                           class="lemon-input flex-1 rounded-2xl px-5 py-3.5 text-sm text-white placeholder-gray-500 focus:outline-none transition font-medium"
+                           onkeypress="if(event.key === 'Enter') executeSongSearch()">
+                    <button onclick="executeSongSearch()" 
+                            class="lemon-btn-secondary px-8 py-3.5 rounded-2xl font-bold text-sm tracking-wide flex items-center justify-center gap-2">
+                        Search Catalog
+                    </button>
+                </div>
+
+                <!-- Live Search Results Grid -->
+                <div id="searchResultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 hidden pt-3">
+                    <!-- Cards injected dynamically -->
+                </div>
+            </div>
+
+            <hr class="border-2 border-[#28382b] my-6">
+
+            <!-- Manual URL/Query Download Input -->
+            <div id="importSection" class="space-y-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#22c55e]">Target URL or Search Query</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="spotifyUrlInput" 
+                           placeholder="Paste Spotify track link or type Artist - Song Title" 
+                           class="lemon-input flex-1 rounded-2xl px-5 py-3.5 text-sm text-white placeholder-gray-500 focus:outline-none transition font-medium">
+                    <button onclick="triggerImport()" 
+                            class="lemon-btn-primary font-bold px-10 py-3.5 rounded-2xl tracking-wide flex items-center justify-center gap-2 text-sm uppercase">
+                        Import Track
+                    </button>
+                </div>
+            </div>
+
+            <!-- Download Progress Bar & Live Status -->
+            <div class="mt-8 lemon-card-sub rounded-2xl p-5 space-y-3 border-2 border-[#22c55e]">
+                <div class="flex justify-between items-center text-xs font-bold">
+                    <span id="currentTrackLabel" class="truncate text-emerald-300 font-mono">No active downloads</span>
+                    <button onclick="checkDownloadStatus()" class="text-[#22c55e] hover:text-emerald-400 underline uppercase tracking-wider transition">Refresh Status</button>
+                </div>
+                <div class="w-full bg-[#0b110c] h-4 rounded-full p-0.5 border-2 border-black overflow-hidden">
+                    <div id="downloadProgressBar" class="bg-[#22c55e] h-full w-0 rounded-full transition-all duration-500 border border-black"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <script>
-        let pollInterval = null;
+        // Execute song search via backend proxy
+        async function executeSongSearch() {
+            const query = document.getElementById('songSearchInput').value.trim();
+            const grid = document.getElementById('searchResultsGrid');
+            if (!query) return;
 
-        function startDownload() {
-            const urlInput = document.getElementById('urlInput');
-            const url = urlInput.value.trim();
+            grid.classList.remove('hidden');
+            grid.innerHTML = '<div class="col-span-full py-6 text-center text-xs font-bold text-[#22c55e] uppercase tracking-wider animate-pulse">Searching Catalog...</div>';
 
-            if (!url) {
-                alert("Please paste a valid Spotify URL!");
-                return;
-            }
+            try {
+                const response = await fetch(`/api/search?term=${encodeURIComponent(query)}`);
+                const data = await response.json();
 
-            const btn = document.getElementById('downloadBtn');
-            btn.disabled = true;
-            btn.innerText = "Starting...";
-
-            fetch('/api/download', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    alert("Error: " + data.error);
-                    btn.disabled = false;
-                    btn.innerText = "Start Download";
-                } else {
-                    console.log("Download initiated:", data.message);
-                    if (!pollInterval) {
-                        pollInterval = setInterval(checkStatus, 1000);
-                    }
+                grid.innerHTML = '';
+                if (!data.results || data.results.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs font-bold text-gray-400">No tracks found matching query.</div>';
+                    return;
                 }
-            })
-            .catch(err => {
-                console.error("Network or script error:", err);
-                alert("Failed to connect to backend service.");
-                btn.disabled = false;
-                btn.innerText = "Start Download";
-            });
+
+                data.results.forEach(track => {
+                    const artist = track.artistName || 'Unknown Artist';
+                    const title = track.trackName || 'Unknown Title';
+                    const album = track.collectionName || 'Singles';
+                    const artwork = track.artworkUrl100 ? track.artworkUrl100.replace('100x100bb', '300x300bb') : 'https://placehold.co/300x300/111a12/22c55e?text=Track';
+                    const searchQueryString = `${artist} - ${title}`;
+
+                    const card = document.createElement('div');
+                    card.className = "flex items-center gap-3 p-3 lemon-card-sub rounded-2xl hover:border-[#22c55e] cursor-pointer transition group";
+                    
+                    card.onclick = () => {
+                        const urlInput = document.getElementById('spotifyUrlInput');
+                        urlInput.value = searchQueryString;
+                        urlInput.dataset.coverUrl = artwork;
+                        urlInput.dataset.album = album;
+                        document.getElementById('importSection').scrollIntoView({ behavior: 'smooth' });
+                    };
+
+                    card.innerHTML = `
+                        <img src="${artwork}" class="w-12 h-12 rounded-xl object-cover border-2 border-black flex-shrink-0 group-hover:scale-105 transition" onerror="this.src='https://placehold.co/300x300/111a12/22c55e?text=Track'">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-white truncate group-hover:text-[#22c55e] transition">${title}</p>
+                            <p class="text-[11px] font-semibold text-emerald-400/80 truncate">${artist}</p>
+                            <p class="text-[10px] font-medium text-gray-400 truncate">${album}</p>
+                        </div>
+                        <div class="w-7 h-7 rounded-full bg-[#22c55e] border-2 border-black flex items-center justify-center text-black font-bold text-xs group-hover:scale-110 transition flex-shrink-0 shadow-[2px_2px_0px_0px_#000]">
+                            +
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Search failed:", err);
+                grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs font-bold text-red-400">Search service unavailable.</div>';
+            }
         }
 
-        function checkStatus() {
-            fetch('/api/status')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('statusText').innerText = data.status;
-                document.getElementById('progressText').innerText = data.progress + '%';
-                document.getElementById('progressBar').style.width = data.progress + '%';
-                document.getElementById('currentTrackText').innerText = data.current_track || 'Processing...';
+        // Trigger track download asynchronously without popup alerts
+        async function triggerImport() {
+            const inputField = document.getElementById('spotifyUrlInput');
+            const url = inputField.value.trim();
+            if (!url) return;
 
-                if (data.status === 'Complete' || data.status.startsWith('Error')) {
-                    clearInterval(pollInterval);
-                    pollInterval = null;
-                    const btn = document.getElementById('downloadBtn');
-                    btn.disabled = false;
-                    btn.innerText = "Start Download";
+            const coverUrl = inputField.dataset.coverUrl || null;
+            const album = inputField.dataset.album || null;
+
+            const statusPill = document.getElementById('statusPill');
+            const statusText = document.getElementById('statusText');
+            const progressBar = document.getElementById('downloadProgressBar');
+            const currentTrackLabel = document.getElementById('currentTrackLabel');
+
+            statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-[#facc15] text-black border-2 border-black animate-pulse";
+            statusText.innerText = "Initiating Download...";
+            progressBar.style.width = "5%";
+            currentTrackLabel.innerText = "Connecting to download worker...";
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, cover_url: coverUrl, album: album })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    inputField.value = "";
+                    delete inputField.dataset.coverUrl;
+                    delete inputField.dataset.album;
+                    startStatusPolling();
+                } else {
+                    statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-red-500 text-black border-2 border-black";
+                    statusText.innerText = result.message || result.error || "Failed to start download";
                 }
-            })
-            .catch(err => console.error("Polling error:", err));
+            } catch (err) {
+                console.error("Import error:", err);
+                statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-red-500 text-black border-2 border-black";
+                statusText.innerText = "Server connection error";
+            }
+        }
+
+        // Check backend download state manually
+        async function checkDownloadStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                const statusPill = document.getElementById('statusPill');
+                const statusText = document.getElementById('statusText');
+                const progressBar = document.getElementById('downloadProgressBar');
+                const currentTrackLabel = document.getElementById('currentTrackLabel');
+
+                if (data.current_track) {
+                    currentTrackLabel.innerText = data.current_track;
+                }
+                
+                if (data.progress !== undefined) {
+                    progressBar.style.width = `${data.progress}%`;
+                }
+
+                statusText.innerText = data.status || "Processing...";
+
+                if (data.status === "Complete") {
+                    statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-[#22c55e] text-black border-2 border-black";
+                } else if (data.status === "Error") {
+                    statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-red-500 text-black border-2 border-black";
+                    statusText.innerText = data.error_details || "Download Failed";
+                }
+            } catch (e) {
+                console.error("Status fetch error:", e);
+            }
+        }
+
+        // Auto-poll status during active jobs
+        let pollingInterval = null;
+        function startStatusPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+                    
+                    const statusPill = document.getElementById('statusPill');
+                    const statusText = document.getElementById('statusText');
+                    const progressBar = document.getElementById('downloadProgressBar');
+                    const currentTrackLabel = document.getElementById('currentTrackLabel');
+
+                    if (data.current_track) {
+                        currentTrackLabel.innerText = data.current_track;
+                    }
+                    
+                    if (data.progress !== undefined) {
+                        progressBar.style.width = `${data.progress}%`;
+                    }
+
+                    statusText.innerText = data.status || "Processing...";
+
+                    if (data.status === "Complete") {
+                        statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-[#22c55e] text-black border-2 border-black";
+                        clearInterval(pollingInterval);
+                    } else if (data.status === "Error") {
+                        statusPill.className = "flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-bold bg-red-500 text-black border-2 border-black";
+                        statusText.innerText = data.error_details || "Download Failed";
+                        clearInterval(pollingInterval);
+                    }
+                } catch (e) {
+                    console.error("Polling error:", e);
+                }
+            }, 2000);
         }
     </script>
 </body>

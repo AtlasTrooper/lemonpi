@@ -93,58 +93,82 @@ def trigger_navidrome_scan():
     except Exception as e:
         print(f"[-] Failed to trigger Navidrome scan: {e}")
 
-def run_download_job(url):
+def run_download_job(url, fallback_cover=None, fallback_album=None):
     global download_status
     try:
         download_status = {
             "status": "Authenticating & Fetching Metadata...",
             "progress": 5,
-            "current_track": "Contacting Spotify API...",
+            "current_track": "Processing request...",
             "error_details": None
         }
         
-        auth_manager = SpotifyOAuth(
-            client_id=SPOTIFY_CLIENT_ID,
-            client_secret=SPOTIFY_CLIENT_SECRET,
-            redirect_uri=SPOTIFY_REDIRECT_URI,
-            scope="playlist-read-private playlist-read-collaborative",
-            cache_path="/app/.cache",
-            open_browser=False
-        )
-        sp = spotipy.Spotify(auth_manager=auth_manager)
-        
         tracks = []
-        if 'track' in url:
-            track_id = url.split('/')[-1].split('?')[0]
-            t = sp.track(track_id)
-            name = t['name']
-            artists = ", ".join([artist['name'] for artist in t['artists']])
-            album = t['album']['name'] if t.get('album') else "Singles"
-            duration_ms = t.get('duration_ms', 0)
-            images = t['album']['images'] if t.get('album') else []
-            tracks.append({'name': name, 'artist': artists, 'album': album, 'duration_ms': duration_ms, 'images': images})
-            playlist_name = "Singles"
-        else:
-            playlist_info = sp.playlist(url, fields="name")
-            playlist_name = "".join([c if c.isalnum() or c in (' ', '-', '_') else '_' for c in playlist_info['name']])
-            
-            results = sp.playlist_tracks(url)
-            def process_items(items):
-                for item in items:
-                    if item:
-                        track = item.get('item') or item.get('track')
-                        if track and track.get('name') and track.get('artists'):
-                            name = track['name']
-                            artists = ", ".join([artist['name'] for artist in track['artists']])
-                            album = track['album']['name'] if track.get('album') else "Unknown Album"
-                            duration_ms = track.get('duration_ms', 0)
-                            images = track['album']['images'] if track.get('album') else []
-                            tracks.append({'name': name, 'artist': artists, 'album': album, 'duration_ms': duration_ms, 'images': images})
+        playlist_name = "Singles"
 
-            process_items(results['items'])
-            while results['next']:
-                results = sp.next(results)
+        # Handle Spotify URLs/URIs vs. Search Query text / plain strings
+        if 'open.spotify.com' in url or url.startswith('spotify:'):
+            auth_manager = SpotifyOAuth(
+                client_id=SPOTIFY_CLIENT_ID,
+                client_secret=SPOTIFY_CLIENT_SECRET,
+                redirect_uri=SPOTIFY_REDIRECT_URI,
+                scope="playlist-read-private playlist-read-collaborative",
+                cache_path="/app/.cache",
+                open_browser=False
+            )
+            sp = spotipy.Spotify(auth_manager=auth_manager)
+            
+            if 'track' in url:
+                track_id = url.split('/')[-1].split(':')[-1].split('?')[0]
+                t = sp.track(track_id)
+                name = t['name']
+                artists = ", ".join([artist['name'] for artist in t['artists']])
+                album = t['album']['name'] if t.get('album') else "Singles"
+                duration_ms = t.get('duration_ms', 0)
+                images = t['album']['images'] if t.get('album') else []
+                tracks.append({'name': name, 'artist': artists, 'album': album, 'duration_ms': duration_ms, 'images': images})
+            elif 'playlist' in url:
+                playlist_id = url.split('/')[-1].split(':')[-1].split('?')[0]
+                playlist_info = sp.playlist(playlist_id, fields="name")
+                playlist_name = "".join([c if c.isalnum() or c in (' ', '-', '_') else '_' for c in playlist_info['name']])
+                
+                results = sp.playlist_tracks(playlist_id)
+                def process_items(items):
+                    for item in items:
+                        if item:
+                            track = item.get('item') or item.get('track')
+                            if track and track.get('name') and track.get('artists'):
+                                name = track['name']
+                                artists = ", ".join([artist['name'] for artist in track['artists']])
+                                album = track['album']['name'] if track.get('album') else "Unknown Album"
+                                duration_ms = track.get('duration_ms', 0)
+                                images = track['album']['images'] if track.get('album') else []
+                                tracks.append({'name': name, 'artist': artists, 'album': album, 'duration_ms': duration_ms, 'images': images})
+
                 process_items(results['items'])
+                while results['next']:
+                    results = sp.next(results)
+                    process_items(results['items'])
+            else:
+                raise ValueError("Unsupported Spotify link. Please provide a track or playlist URL.")
+        else:
+            # Fallback for plain query strings / search card inputs ("Artist - Track Title")
+            clean_query = url.replace("https://open.spotify.com/search/", "").replace("%20", " ").strip()
+            if " - " in clean_query:
+                parts = clean_query.split(" - ", 1)
+                artist_name, track_name = parts[0].strip(), parts[1].strip()
+            else:
+                artist_name, track_name = "Various Artists", clean_query
+
+            # Use cover artwork and album name passed from the search card if available
+            images = [{'url': fallback_cover}] if fallback_cover else []
+            tracks.append({
+                'name': track_name,
+                'artist': artist_name,
+                'album': fallback_album or 'Singles',
+                'duration_ms': 0,
+                'images': images
+            })
 
         total_tracks = len(tracks)
         output_dir = os.path.join(BASE_OUTPUT_DIR, playlist_name)
@@ -165,7 +189,7 @@ def run_download_job(url):
             
             safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_')).strip()
             safe_album = "".join(c for c in album if c.isalnum() or c in (' ', '-', '_')).strip()
-            track_dir = os.path.join(output_dir, safe_artist, safe_album)
+            track_dir = os.path.join(output_dir, safe_artist or "Unknown_Artist", safe_album or "Singles")
             os.makedirs(track_dir, exist_ok=True)
 
             cover_path = os.path.join(track_dir, "cover.jpg")
@@ -251,13 +275,15 @@ def index():
 def start_download():
     data = request.json or {}
     url = data.get('url')
+    cover_url = data.get('cover_url')
+    album = data.get('album')
     if not url:
-        return jsonify({"error": "No Spotify playlist or track URL provided"}), 400
+        return jsonify({"error": "No playlist or song query provided"}), 400
         
     if download_status["status"].startswith("Downloading") or download_status["status"].startswith("Authenticating"):
         return jsonify({"message": "Download task is already running in background!", "status": download_status}), 400
         
-    thread = threading.Thread(target=run_download_job, args=(url,))
+    thread = threading.Thread(target=run_download_job, args=(url, cover_url, album))
     thread.start()
     return jsonify({"message": "Download task started!", "status": download_status})
 
@@ -265,6 +291,23 @@ def start_download():
 def get_status():
     """Live status endpoint queried by front-end status check button."""
     return jsonify(download_status)
+
+@app.route('/api/search', methods=['GET'])
+def search_tracks():
+    """Proxy search queries server-side to avoid browser CORS errors."""
+    query = request.args.get('term', '')
+    if not query:
+        return jsonify({"results": []})
+    
+    try:
+        url = f"https://itunes.apple.com/search?term={requests.utils.quote(query)}&entity=song&limit=6"
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            return jsonify(res.json())
+        return jsonify({"results": []})
+    except Exception as e:
+        print(f"[-] Search proxy failed: {e}")
+        return jsonify({"results": [], "error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
